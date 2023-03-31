@@ -6,6 +6,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -15,18 +16,26 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.benasher44.uuid.uuid4
 import id.ac.unpas.functionalcompose.model.SetoranSampah
+import id.ac.unpas.functionalcompose.persistences.SetoranSampahDao
 import id.ac.unpas.functionalcompose.ui.theme.Purple700
 import id.ac.unpas.functionalcompose.ui.theme.Teal200
+import kotlinx.coroutines.launch
 
 /* Dika Sulaeman Akbar 203040163*/
-/* latihan fungsi callback*/
+
 
 @Composable
-fun FormPencatatanSampah(onSimpan: (SetoranSampah) -> Unit) {
+fun FormPencatatanSampah() {
+    val viewModel = hiltViewModel<PengelolaanSampahViewModel>()
+
     val tanggal = remember { mutableStateOf(TextFieldValue("")) }
     val nama = remember { mutableStateOf(TextFieldValue("")) }
     val berat = remember { mutableStateOf(TextFieldValue("")) }
+
+    val scope = rememberCoroutineScope()
     Column(modifier = Modifier
         .padding(10.dp)
         .fillMaxWidth()) {
@@ -71,13 +80,14 @@ fun FormPencatatanSampah(onSimpan: (SetoranSampah) -> Unit) {
         )
         Row (modifier = Modifier.padding(4.dp).fillMaxWidth()) {
             Button(modifier = Modifier.weight(5f), onClick = {
-
-                val item = SetoranSampah(tanggal.value.text, nama.value.text,
-                    berat.value.text)
-                onSimpan(item)
-                tanggal.value = TextFieldValue("")
-                nama.value = TextFieldValue("")
-                berat.value = TextFieldValue("")
+                val id = uuid4().toString()
+                scope.launch {
+                    viewModel.insert(id, tanggal.value.text, nama.value.text,
+                        berat.value.text)
+                    tanggal.value = TextFieldValue("")
+                    nama.value = TextFieldValue("")
+                    berat.value = TextFieldValue("")
+                }
             }, colors = loginButtonColors) {
                 Text(
                     text = "Simpan",

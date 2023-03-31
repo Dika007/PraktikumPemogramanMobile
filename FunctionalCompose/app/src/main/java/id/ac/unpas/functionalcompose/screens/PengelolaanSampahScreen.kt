@@ -11,29 +11,34 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.LiveData
+import androidx.room.Room
 import id.ac.unpas.functionalcompose.model.SetoranSampah
+import id.ac.unpas.functionalcompose.persistences.AppDatabase
+import id.ac.unpas.functionalcompose.persistences.SetoranSampahDao
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /* Dika Sulaeman Akbar 203040163*/
-/* latihan fungsi callback*/
+
 
 @Composable
 fun PengelolaanSampahScreen() {
-    val _list = remember { MutableStateFlow(listOf<SetoranSampah>()) }
-    val list by remember { _list }.collectAsState()
+    val viewModel = hiltViewModel<PengelolaanSampahViewModel>()
+    val items: List<SetoranSampah> by viewModel.list.observeAsState(initial =
+    listOf())
     Column(modifier = Modifier.fillMaxWidth()) {
-        FormPencatatanSampah { item ->
-            val newList = ArrayList(list)
-            newList.add(item)
-            _list.value = newList
-        }
+        FormPencatatanSampah()
+
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(items = list, itemContent = { item ->
+            items(items = items, itemContent = { item ->
                 Row(modifier = Modifier
                     .padding(15.dp)
                     .fillMaxWidth()) {
