@@ -1,5 +1,6 @@
 package id.ac.unpas.functionalcompose.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,22 +10,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.LiveData
-import androidx.room.Room
 import id.ac.unpas.functionalcompose.model.SetoranSampah
-import id.ac.unpas.functionalcompose.persistences.AppDatabase
-import id.ac.unpas.functionalcompose.persistences.SetoranSampahDao
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /* Dika Sulaeman Akbar 203040163*/
 
@@ -32,11 +30,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun PengelolaanSampahScreen() {
     val viewModel = hiltViewModel<PengelolaanSampahViewModel>()
-    val items: List<SetoranSampah> by viewModel.list.observeAsState(initial =
-    listOf())
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val items: List<SetoranSampah> by
+    viewModel.list.observeAsState(initial = listOf())
     Column(modifier = Modifier.fillMaxWidth()) {
         FormPencatatanSampah()
-
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
             items(items = items, itemContent = { item ->
                 Row(modifier = Modifier
@@ -44,22 +43,35 @@ fun PengelolaanSampahScreen() {
                     .fillMaxWidth()) {
                     Column(modifier = Modifier.weight(3f)) {
                         Text(text = "Tanggal", fontSize = 14.sp)
-                        Text(text = item.tanggal, fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold)
+                        Text(text = item.tanggal, fontSize =
+                        16.sp, fontWeight = FontWeight.Bold)
                     }
                     Column(modifier = Modifier.weight(3f)) {
                         Text(text = "Nama", fontSize = 14.sp)
-                        Text(text = item.nama, fontSize = 16.sp, fontWeight =
-                        FontWeight.Bold)
+                        Text(text = item.nama, fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold)
                     }
                     Column(modifier = Modifier.weight(3f)) {
                         Text(text = "Berat", fontSize = 14.sp)
-                        Text(text = "${item.berat} Kg", fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold)
+                        Text(text = "${item.berat} Kg", fontSize
+                        = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 Divider(modifier = Modifier.fillMaxWidth())
             })
         }
+    }
+    LaunchedEffect(scope) {
+        viewModel.loadItems()
+    }
+    viewModel.success.observe(LocalLifecycleOwner.current) {
+        if (it) {
+            scope.launch {
+                viewModel.loadItems()
+            }
+        }
+    }
+    viewModel.toast.observe(LocalLifecycleOwner.current) {
+        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
     }
 }
